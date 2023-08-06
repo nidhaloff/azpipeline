@@ -1,5 +1,5 @@
 site_name: "azpipeline"
-repo_url: https://github.com/nidhaloff/azpipeline
+repo_url: https://azpipeline.readthedocs.io/en/latest/
 
 theme:
   name: material
