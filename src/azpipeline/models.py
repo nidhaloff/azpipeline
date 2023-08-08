@@ -3,15 +3,16 @@ __copyright__ = """
 """
 
 from dataclasses import dataclass
+from typing import Any
 
 
 @dataclass
 class PipelineSummary:
-    name: str
-    build_id: int
-    result: str
-    status: str
-    url: str
-    branch: str
-    commit_id: str
-    triggered_by: str
+    name: Any
+    build_id: Any
+    result: Any
+    status: Any
+    url: Any
+    branch: Any
+    commit_id: Any
+    triggered_by: Any

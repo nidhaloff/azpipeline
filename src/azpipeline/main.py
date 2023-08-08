@@ -4,42 +4,44 @@ __copyright__ = """
 @copyright (c) 2023 by Nidhal Baccouri. All rights reserved.
 """
 
+import logging
 import os
 import sys
+from collections import defaultdict
 from dataclasses import dataclass
 from itertools import groupby
 from operator import itemgetter
 from pathlib import Path
-from typing import List, Optional, Tuple, Union
+from typing import Any, List, Optional, Tuple
+
+from azure.devops.connection import Connection
+from azure.devops.released.build import BuildClient
+from azure.devops.v7_1.build.models import Build, Timeline, TimelineRecord
+from msrest import Serializer
+from msrest.authentication import BasicAuthentication
 
 from azpipeline.config import Config
 from azpipeline.libs.utils import write_json
-from azpipeline.log import logger
 from azpipeline.models import PipelineSummary
 
-try:
-    from azure.devops.connection import Connection
-    from azure.devops.released.build import BuildClient
-    from azure.devops.v7_1.build.models import Build, Timeline, TimelineRecord
-    from msrest import Serializer
-    from msrest.authentication import BasicAuthentication
-except ImportError:
-    print("Make sure azure-devops is installed")
+logger = logging.getLogger(__name__)
+logger.setLevel(logging.INFO)
 
 
 @dataclass
 class AzurePipeline(Connection):
     build_id: str
-    token: str = os.getenv("AZURE_PIPELINES_TOKEN", None)
+    token: Optional[str] = os.getenv("AZURE_PIPELINES_TOKEN", None)
     organization_url: str = ""
     project: str = ""
     save_logs: bool = False
     logs_dir: Path = Config.ADO_LOGS_DIR
 
-    def __post_init__(self):
+    def __post_init__(self) -> None:
         if not self.build_id:
             logger.error(
-                f"Something wrong with the BuildId: {self.build_id}. Please provide an existent one."
+                "Something wrong with the BuildId: %s. Please provide an existent one.",
+                self.build_id,
             )
             sys.exit(1)
 
@@ -69,36 +71,36 @@ class AzurePipeline(Connection):
         self._serializer: Serializer = self._build_client._serialize
 
     @property
-    def build_url(self):
+    def build_url(self) -> Any:
         """Get the url of the current pipeline."""
         try:
             return self._build_pipeline._links.additional_properties["web"]["href"]
-        except KeyError as err:
-            logger.error(f"Build url not found!\nERROR: {err}")
+        except KeyError:
+            logger.error("Build url not found!")
             sys.exit(1)
 
     @property
-    def branch_name(self):
+    def branch_name(self) -> Any:
         return self._build_pipeline.source_branch
 
     @property
-    def commit_id(self):
+    def commit_id(self) -> Any:
         return self._build_pipeline.source_version
 
     @property
-    def build_triggered_by(self):
+    def build_triggered_by(self) -> Any:
         return self._build_pipeline.requested_by.display_name
 
     @property
-    def name(self):
+    def name(self) -> Any:
         return self._build_pipeline.definition.name
 
     @property
-    def result(self):
+    def result(self) -> Any:
         return self._build_pipeline.result
 
     @property
-    def status(self):
+    def status(self) -> Any:
         return self._build_pipeline.status
 
     @property
@@ -115,7 +117,7 @@ class AzurePipeline(Connection):
             triggered_by=self.build_triggered_by,
         )
 
-    def _serialize(self, obj):
+    def _serialize(self, obj: Any) -> Any:
         """Serialize custom object/instance into dict/json"""
         return self._serializer.serialize_object(obj)
 
@@ -133,7 +135,7 @@ class AzurePipeline(Connection):
         if not build_id:
             build_id = self.build_id
 
-        logger.info(f"Getting timeline for pipeline with Build id = {build_id}")
+        logger.info("Getting timeline for pipeline with Build id = %s", build_id)
         timeline: Timeline = self._build_client.get_build_timeline(
             build_id=build_id, project=self.project
         )
@@ -172,7 +174,8 @@ class AzurePipeline(Connection):
             )
 
         logger.debug(
-            f"Failed tasks have been extracted successfully -> length={len(failed_tasks)}"
+            "Failed tasks have been extracted successfully -> length=%s",
+            len(failed_tasks),
         )
         return failed_tasks
 
@@ -204,7 +207,7 @@ class AzurePipeline(Connection):
             # Extract the issue messages of a task, if exist.
             task_metadata["issues"] = [d.message for d in task.issues]
             logger.info(
-                f"searching parent for: {task.name} with parent_id: {task.parent_id}"
+                "searching parent for: %s with parent_id: %s", task.name, task.parent_id
             )
 
             for record in timeline.records:
@@ -218,10 +221,10 @@ class AzurePipeline(Connection):
                 output_path=Path(self.logs_dir, "tasks_metadata.json"), obj=metadata
             )
 
-        logger.debug(f"Logs have been extracted successfully -> length={len(logs)}")
+        logger.debug("Logs have been extracted successfully -> length=%s", len(logs))
         return logs, metadata
 
-    def get_previous_builds(self):
+    def get_previous_builds(self) -> Any:
         """Return a list of previous builds
 
         Returns:
@@ -240,7 +243,7 @@ class AzurePipeline(Connection):
             for past_build in builds.value:
                 list_builds.append(past_build.id)
 
-        logger.info(f"List of builds {list_builds}")
+        logger.info("List of builds %s", list_builds)
         if len(list_builds) > 1:
             build_index = list_builds.index(self._build_pipeline.id)
             if build_index + 1 < len(list_builds):
@@ -249,7 +252,8 @@ class AzurePipeline(Connection):
                 return None
         return None
 
-    def failed_jobs(self, build_id: Optional[str] = None) -> Union[list, dict]:
+    # flake8: noqa: C901
+    def failed_jobs(self, build_id: Optional[str] = None) -> Any:
         """Get list of failed jobs during the pipeline execution.
         This returns a dict with the failed job names as values.
         It is meant more for debugging purposes
@@ -258,7 +262,7 @@ class AzurePipeline(Connection):
             build_id (Optional[str], optional): build_id of an azure pipeline. If None, current build_id will be used
 
         Returns:
-            Union[list, dict]: list of error jobs/stages names during the pipeline execution
+            Any: list of error jobs/stages names during the pipeline execution
         """
 
         # Use current build_id if not custom id was provided
@@ -266,19 +270,16 @@ class AzurePipeline(Connection):
             build_id = self.build_id
 
         timeline = self.get_timeline(build_id)
-        failed_job_records = {}
-        list_errors = []
+        failed_job_records: Any = defaultdict(list)
+        list_errors: List = []
 
         for record in timeline.records:
             if record.result == "failed" and record.type == "Job":
-                if record.type not in failed_job_records:
-                    failed_job_records[record.type] = []
-
                 failed_job_records[record.type].append(record)
-                logger.info(f"failed_job_records: {failed_job_records}")
+                logger.info("failed_job_records: %s", failed_job_records)
 
         # Create a section for each error
-        if "Job" in failed_job_records:
+        if "Job" in failed_job_records.keys():
             for record in failed_job_records["Job"]:
                 error = {
                     "stage": "JobStageErrors",
@@ -289,7 +290,7 @@ class AzurePipeline(Connection):
 
         if len(list_errors) > 0:
             # Display data grouped by stage
-            group_list = {}
+            group_list: Any = {}
             for key, value in groupby(list_errors, key=itemgetter("stage")):
                 jobs = []
                 group_list[key] = {}
@@ -302,8 +303,8 @@ class AzurePipeline(Connection):
             return list_errors
 
     def compare_with_prev_build(
-        self, prev_build, curr_build: Optional[str] = None
-    ) -> str:
+        self, prev_build: Optional[str], curr_build: Optional[str] = None
+    ) -> Optional[str]:
         """Compare two builds. Generally the current build with the previous one
 
         Args:
@@ -311,27 +312,27 @@ class AzurePipeline(Connection):
             curr_build (Optional[str], optional): current build_id. If None, the current will be used
 
         Returns:
-            str: feedback message that shows comparison of current build with the previous one
+            Optional[str]: feedback message that shows comparison of current build with the previous one
         """
         # Set curr_build to the current build_id if no custom one is provided
         if not curr_build:
             curr_build = self.build_id
 
         logger.info(
-            f"Compare previous build: {prev_build} to current build: {curr_build}"
+            "Compare previous build: %s to current build: %s", prev_build, curr_build
         )
 
         curr_error = self.get_list_of_errors(curr_build)
-        logger.info(f"Current  builds errors: {curr_error}")
+        logger.info("Current  builds errors: %s", curr_error)
         # previous error sometimes is empty
         if prev_build:
             prev_error = self.get_list_of_errors(prev_build)
         else:
             prev_error = {}
-        logger.info(f"Previous builds errors: {prev_error}")
+        logger.info("Previous builds errors: %s", prev_error)
 
-        logger.info(f"Current error ={len(curr_error)}")
-        logger.info(f"Previous error ={len(prev_error)}")
+        logger.info("Current error =%s", len(curr_error))
+        logger.info("Previous error =%s", len(prev_error))
 
         message = None
 
@@ -347,5 +348,5 @@ class AzurePipeline(Connection):
         if len(curr_error) > 0 and len(prev_error) == 0:
             message = "new failure!"
 
-        logger.info(f"Out message ={message}")
+        logger.info("Out message =%s", message)
         return message

@@ -6,6 +6,6 @@ from pathlib import Path
 from typing import Union
 
 
-def write_json(f: Union[str, Path], obj: dict) -> None:
-    with Path(f).open() as file:
+def write_json(output_path: Union[str, Path], obj: dict) -> None:
+    with Path(output_path).open() as file:
         json.dump(obj, file)
