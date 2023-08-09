@@ -35,4 +35,4 @@ plugins:
 watch:
   - README.md
   - CHANGELOG.md
-  - src/
+  - src/azpipeline
