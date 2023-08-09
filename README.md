@@ -2,7 +2,7 @@
 
 [![PyPI](https://img.shields.io/pypi/v/azpipeline?style=flat-square)](https://pypi.python.org/pypi/azpipeline/)
 [![PyPI - Python Version](https://img.shields.io/pypi/pyversions/azpipeline?style=flat-square)](https://pypi.python.org/pypi/azpipeline/)
-[![PyPI - License](https://img.shields.io/pypi/l/azpipeline?style=flat-square)](https://pypi.python.org/pypi/azpipeline/)
+[![PyPI - License](https://img.shields.io/pypi/l/azpipeline?style=flat-square)](https://github.com/nidhaloff/azpipeline/blob/main/LICENCE)
 
 
 ---
