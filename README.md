@@ -3,12 +3,11 @@
 [![PyPI](https://img.shields.io/pypi/v/azpipeline?style=flat-square)](https://pypi.python.org/pypi/azpipeline/)
 [![PyPI - Python Version](https://img.shields.io/pypi/pyversions/azpipeline?style=flat-square)](https://pypi.python.org/pypi/azpipeline/)
 [![PyPI - License](https://img.shields.io/pypi/l/azpipeline?style=flat-square)](https://pypi.python.org/pypi/azpipeline/)
-[![Coookiecutter - Wolt](https://img.shields.io/badge/cookiecutter-Wolt-00c2e8?style=flat-square&logo=cookiecutter&logoColor=D4AA00&link=https://github.com/woltapp/wolt-python-package-cookiecutter)](https://github.com/woltapp/wolt-python-package-cookiecutter)
 
 
 ---
 
-**Documentation**: [https://nidhaloff.github.io/azpipeline](https://nidhaloff.github.io/azpipeline)
+**Documentation**: [https://azpipeline.readthedocs.io/en/latest/](https://azpipeline.readthedocs.io/en/latest/)
 
 **Source Code**: [https://github.com/nidhaloff/azpipeline](https://github.com/nidhaloff/azpipeline)
 
@@ -86,4 +85,3 @@ Or if you want e.g. want to run all checks manually for all files:
 ```sh
 pre-commit run --all-files
 ```
-
