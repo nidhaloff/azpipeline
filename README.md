@@ -15,13 +15,54 @@
 
 ---
 
-Interact with azure pipelines using python
+The easiest way to interact with azure pipelines using python!
+
+The azure-devops library is very confusing to use and wrap your head around. Furthermore, it is not documented <b>at all</b>!!. Anyway, that is the reason I implemented this small wrapper to easily interact with azure pipeline.
 
 ## Installation
 
 ```sh
 pip install azpipeline
 ```
+
+## Usage
+
+```py
+
+from azpipeline import AzurePipeline
+
+# Create the pipeline class
+pipeline = AzurePipeline(
+  organization_url=<your_organization_url>,
+  project=<your_project>,
+  build_id=<your_pipeline_build_id>,
+  token=<your_access_token>
+)
+
+# Access a summary of the pipeline run
+summary = pipeline.summary
+
+# Get the timeline of the current pipeline run
+timeline = pipeline.get_timeline()
+
+# Get tasks/steps that failed on the pipeline
+failed_tasks = pipeline.get_failed_tasks(timeline)
+
+# Get failed tasks logs
+logs = pipeline.get_failed_tasks_logs(timeline)
+
+# Get failed jobs
+jobs = pipeline.failed_jobs()
+
+# Get a list of previous builds
+builds = pipeline.get_previous_builds()
+
+# Compare current with previous build
+pipeline.compare_with_prev_build()
+
+
+```
+
 
 ## Development
 
@@ -50,8 +91,7 @@ pytest
 ### Documentation
 
 The documentation is automatically generated from the content of the [docs directory](./docs) and from the docstrings
- of the public signatures of the source code. The documentation is updated and published as a [Github project page
- ](https://pages.github.com/) automatically as part each release.
+ of the public signatures of the source code.
 
 ### Releasing
 
