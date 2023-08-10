@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "azpipeline"
-version = "0.0.1"
+version = "0.1.0"
 description = "Interact with azure pipelines using python"
 authors = [
     "Nidhal Baccouri <nidhalbacc@gmail.com>",
